@@ -36,20 +36,20 @@ namespace ns3
  *
  * \brief Helper class that adds ns3::Ipv4GlobalRouting objects
  */
-class Ipv4DGRRoutingHelper : public Ipv4RoutingHelper
+class GBRHelper : public Ipv4RoutingHelper
 {
   public:
     /**
      * \brief Construct a GlobalRoutingHelper to make life easier for managing
      * global routing tasks.
      */
-    Ipv4DGRRoutingHelper();
+    GBRHelper();
 
     /**
      * \brief Construct a GlobalRoutingHelper from another previously initialized
      * instance (Copy Constructor).
      */
-    Ipv4DGRRoutingHelper(const Ipv4DGRRoutingHelper&);
+    GBRHelper(const GBRHelper&);
 
     /**
      * \returns pointer to clone of this Ipv4GlobalRoutingHelper
@@ -57,7 +57,7 @@ class Ipv4DGRRoutingHelper : public Ipv4RoutingHelper
      * This method is mainly for internal use by the other helpers;
      * clients are expected to free the dynamic memory allocated by this method
      */
-    Ipv4DGRRoutingHelper* Copy(void) const;
+    GBRHelper* Copy(void) const;
 
     /**
      * \param node the node on which the routing protocol will run
@@ -124,7 +124,7 @@ class Ipv4DGRRoutingHelper : public Ipv4RoutingHelper
      * assignment and prevent the compiler from happily inserting its own.
      * \return
      */
-    Ipv4DGRRoutingHelper& operator=(const Ipv4DGRRoutingHelper&);
+    GBRHelper& operator=(const GBRHelper&);
 };
 
 } // namespace ns3

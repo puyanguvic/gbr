@@ -16,12 +16,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#include "ipv4-dgr-routing.h"
+#include "ipv4-gbr-routing.h"
 
-#include "dgr-route-manager.h"
 #include "dgrv2-queue-disc.h"
 #include "packet-headers.h"
 #include "packet-tags.h"
+#include "route-manager.h"
 
 #include "ns3/boolean.h"
 #include "ns3/ipv4-list-routing.h"
@@ -52,44 +52,44 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE("Ipv4DGRRouting");
+NS_LOG_COMPONENT_DEFINE("GBR");
 
-NS_OBJECT_ENSURE_REGISTERED(Ipv4DGRRouting);
+NS_OBJECT_ENSURE_REGISTERED(GBR);
 
 TypeId
-Ipv4DGRRouting::GetTypeId(void)
+GBR::GetTypeId(void)
 {
     static TypeId tid =
-        TypeId("ns3::Ipv4DGRRouting")
+        TypeId("ns3::GBR")
             .SetParent<Ipv4RoutingProtocol>()
             .SetGroupName("DGR-routing")
-            .AddConstructor<Ipv4DGRRouting>()
+            .AddConstructor<GBR>()
             .AddAttribute("RandomEcmpRouting",
                           "Set to true if packets are randomly routed among ECMP; set to false for "
                           "using only one route consistently",
                           BooleanValue(false),
-                          MakeBooleanAccessor(&Ipv4DGRRouting::m_randomEcmpRouting),
+                          MakeBooleanAccessor(&GBR::m_randomEcmpRouting),
                           MakeBooleanChecker())
             .AddAttribute("RespondToInterfaceEvents",
                           "Set to true if you want to dynamically recompute the global routes upon "
                           "Interface notification events (up/down, or add/remove address)",
                           BooleanValue(false),
-                          MakeBooleanAccessor(&Ipv4DGRRouting::m_respondToInterfaceEvents),
+                          MakeBooleanAccessor(&GBR::m_respondToInterfaceEvents),
                           MakeBooleanChecker())
             .AddAttribute("SamplePeriod",
                           "Time between two Unsolicited Neighbor State Updates.",
                           TimeValue(MilliSeconds(10)),
-                          MakeTimeAccessor(&Ipv4DGRRouting::m_unsolicitedUpdate),
+                          MakeTimeAccessor(&GBR::m_unsolicitedUpdate),
                           MakeTimeChecker())
             .AddAttribute("RouteSelectMode",
                           "Routing Select Mode",
                           EnumValue(NONE),
-                          MakeEnumAccessor(&Ipv4DGRRouting::m_routeSelectMode),
+                          MakeEnumAccessor(&GBR::m_routeSelectMode),
                           MakeEnumChecker(NONE, "ECMP", KSHORT, "KSHORT", DGR, "DGR", DDR, "DDR"));
     return tid;
 }
 
-Ipv4DGRRouting::Ipv4DGRRouting()
+GBR::GBR()
     : m_randomEcmpRouting(false),
       m_respondToInterfaceEvents(false),
       m_nsdb()
@@ -98,26 +98,26 @@ Ipv4DGRRouting::Ipv4DGRRouting()
     m_rand = CreateObject<UniformRandomVariable>();
 }
 
-Ipv4DGRRouting::~Ipv4DGRRouting()
+GBR::~GBR()
 {
     NS_LOG_FUNCTION(this);
 }
 
 void
-Ipv4DGRRouting::AddHostRouteTo(Ipv4Address dest, Ipv4Address nextHop, uint32_t interface)
+GBR::AddHostRouteTo(Ipv4Address dest, Ipv4Address nextHop, uint32_t interface)
 {
     NS_LOG_FUNCTION(this << dest << nextHop << interface);
-    Ipv4DGRRoutingTableEntry* route = new Ipv4DGRRoutingTableEntry();
-    *route = Ipv4DGRRoutingTableEntry::CreateHostRouteTo(dest, nextHop, interface);
+    RoutingTableEntry* route = new RoutingTableEntry();
+    *route = RoutingTableEntry::CreateHostRouteTo(dest, nextHop, interface);
     m_hostRoutes.push_back(route);
 }
 
 void
-Ipv4DGRRouting::AddHostRouteTo(Ipv4Address dest, uint32_t interface)
+GBR::AddHostRouteTo(Ipv4Address dest, uint32_t interface)
 {
     NS_LOG_FUNCTION(this << dest << interface);
-    Ipv4DGRRoutingTableEntry* route = new Ipv4DGRRoutingTableEntry();
-    *route = Ipv4DGRRoutingTableEntry::CreateHostRouteTo(dest, interface);
+    RoutingTableEntry* route = new RoutingTableEntry();
+    *route = RoutingTableEntry::CreateHostRouteTo(dest, interface);
     m_hostRoutes.push_back(route);
 }
 
@@ -132,59 +132,54 @@ Ipv4DGRRouting::AddHostRouteTo(Ipv4Address dest, uint32_t interface)
  * \param distance The distance between root and destination
  */
 void
-Ipv4DGRRouting::AddHostRouteTo(Ipv4Address dest,
-                               Ipv4Address nextHop,
-                               uint32_t interface,
-                               uint32_t nextInterface,
-                               uint32_t distance)
+GBR::AddHostRouteTo(Ipv4Address dest,
+                    Ipv4Address nextHop,
+                    uint32_t interface,
+                    uint32_t nextInterface,
+                    uint32_t distance)
 {
     NS_LOG_FUNCTION(this << dest << nextHop << interface << nextInterface << distance);
-    Ipv4DGRRoutingTableEntry* route = new Ipv4DGRRoutingTableEntry();
-    *route = Ipv4DGRRoutingTableEntry::CreateHostRouteTo(dest,
-                                                         nextHop,
-                                                         interface,
-                                                         nextInterface,
-                                                         distance);
+    RoutingTableEntry* route = new RoutingTableEntry();
+    *route =
+        RoutingTableEntry::CreateHostRouteTo(dest, nextHop, interface, nextInterface, distance);
     m_hostRoutes.push_back(route);
 }
 
 void
-Ipv4DGRRouting::AddNetworkRouteTo(Ipv4Address network,
-                                  Ipv4Mask networkMask,
-                                  Ipv4Address nextHop,
-                                  uint32_t interface)
+GBR::AddNetworkRouteTo(Ipv4Address network,
+                       Ipv4Mask networkMask,
+                       Ipv4Address nextHop,
+                       uint32_t interface)
 {
     NS_LOG_FUNCTION(this << network << networkMask << nextHop << interface);
-    Ipv4DGRRoutingTableEntry* route = new Ipv4DGRRoutingTableEntry();
-    *route =
-        Ipv4DGRRoutingTableEntry::CreateNetworkRouteTo(network, networkMask, nextHop, interface);
+    RoutingTableEntry* route = new RoutingTableEntry();
+    *route = RoutingTableEntry::CreateNetworkRouteTo(network, networkMask, nextHop, interface);
     m_networkRoutes.push_back(route);
 }
 
 void
-Ipv4DGRRouting::AddNetworkRouteTo(Ipv4Address network, Ipv4Mask networkMask, uint32_t interface)
+GBR::AddNetworkRouteTo(Ipv4Address network, Ipv4Mask networkMask, uint32_t interface)
 {
     NS_LOG_FUNCTION(this << network << networkMask << interface);
-    Ipv4DGRRoutingTableEntry* route = new Ipv4DGRRoutingTableEntry();
-    *route = Ipv4DGRRoutingTableEntry::CreateNetworkRouteTo(network, networkMask, interface);
+    RoutingTableEntry* route = new RoutingTableEntry();
+    *route = RoutingTableEntry::CreateNetworkRouteTo(network, networkMask, interface);
     m_networkRoutes.push_back(route);
 }
 
 void
-Ipv4DGRRouting::AddASExternalRouteTo(Ipv4Address network,
-                                     Ipv4Mask networkMask,
-                                     Ipv4Address nextHop,
-                                     uint32_t interface)
+GBR::AddASExternalRouteTo(Ipv4Address network,
+                          Ipv4Mask networkMask,
+                          Ipv4Address nextHop,
+                          uint32_t interface)
 {
     NS_LOG_FUNCTION(this << network << networkMask << nextHop << interface);
-    Ipv4DGRRoutingTableEntry* route = new Ipv4DGRRoutingTableEntry();
-    *route =
-        Ipv4DGRRoutingTableEntry::CreateNetworkRouteTo(network, networkMask, nextHop, interface);
+    RoutingTableEntry* route = new RoutingTableEntry();
+    *route = RoutingTableEntry::CreateNetworkRouteTo(network, networkMask, nextHop, interface);
     m_ASexternalRoutes.push_back(route);
 }
 
 Ptr<Ipv4Route>
-Ipv4DGRRouting::LookupECMPRoute(Ipv4Address dest, Ptr<NetDevice> oif)
+GBR::LookupECMPRoute(Ipv4Address dest, Ptr<NetDevice> oif)
 {
     /**
      * Get the shortest path in the routing table
@@ -194,7 +189,7 @@ Ipv4DGRRouting::LookupECMPRoute(Ipv4Address dest, Ptr<NetDevice> oif)
 
     Ptr<Ipv4Route> rtentry = 0;
     // store all available routes that bring packets to their destination
-    typedef std::vector<Ipv4DGRRoutingTableEntry*> RouteVec_t;
+    typedef std::vector<RoutingTableEntry*> RouteVec_t;
     RouteVec_t allRoutes;
 
     NS_LOG_LOGIC("Number of m_hostRoutes = " << m_hostRoutes.size());
@@ -227,7 +222,7 @@ Ipv4DGRRouting::LookupECMPRoute(Ipv4Address dest, Ptr<NetDevice> oif)
                 shortestDist = allRoutes.at(i)->GetDistance();
             }
         }
-        Ipv4DGRRoutingTableEntry* route = allRoutes.at(routRef);
+        RoutingTableEntry* route = allRoutes.at(routRef);
 
         // create a Ipv4Route object from the selected routing table entry
         rtentry = Create<Ipv4Route>();
@@ -246,7 +241,7 @@ Ipv4DGRRouting::LookupECMPRoute(Ipv4Address dest, Ptr<NetDevice> oif)
 }
 
 Ptr<Ipv4Route>
-Ipv4DGRRouting::LookupDDRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> idev)
+GBR::LookupDDRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> idev)
 {
     // std::cout <<"DGR routing" << std::endl;
     BudgetTag bgtTag;
@@ -278,8 +273,8 @@ Ipv4DGRRouting::LookupDDRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDev
     NS_LOG_LOGIC("Looking for route for destination " << dest);
     Ptr<Ipv4Route> rtentry = 0;
     // store all available routes that bring packets to their destination
-    typedef std::vector<Ipv4DGRRoutingTableEntry*> RouteVec_t;
-    // typedef std::vector<Ipv4DGRRoutingTableEntry *>::const_iterator RouteVecCI_t;
+    typedef std::vector<RoutingTableEntry*> RouteVec_t;
+    // typedef std::vector<RoutingTableEntry *>::const_iterator RouteVecCI_t;
     RouteVec_t allRoutes;
 
     NS_LOG_LOGIC("Number of m_hostRoutes = " << m_hostRoutes.size());
@@ -358,7 +353,7 @@ Ipv4DGRRouting::LookupDDRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDev
             }
         }
 
-        Ipv4DGRRoutingTableEntry* route = allRoutes.at(selectIndex);
+        RoutingTableEntry* route = allRoutes.at(selectIndex);
         uint32_t interfaceIdx = route->GetInterface();
 
         rtentry = Create<Ipv4Route>();
@@ -379,7 +374,7 @@ Ipv4DGRRouting::LookupDDRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDev
 }
 
 Ptr<Ipv4Route>
-Ipv4DGRRouting::LookupDGRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> idev)
+GBR::LookupDGRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> idev)
 {
     // std::cout <<"DGR routing" << std::endl;
     BudgetTag bgtTag;
@@ -411,8 +406,8 @@ Ipv4DGRRouting::LookupDGRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDev
     NS_LOG_LOGIC("Looking for route for destination " << dest);
     Ptr<Ipv4Route> rtentry = 0;
     // store all available routes that bring packets to their destination
-    typedef std::vector<Ipv4DGRRoutingTableEntry*> RouteVec_t;
-    // typedef std::vector<Ipv4DGRRoutingTableEntry *>::const_iterator RouteVecCI_t;
+    typedef std::vector<RoutingTableEntry*> RouteVec_t;
+    // typedef std::vector<RoutingTableEntry *>::const_iterator RouteVecCI_t;
     RouteVec_t allRoutes;
 
     NS_LOG_LOGIC("Number of m_hostRoutes = " << m_hostRoutes.size());
@@ -480,7 +475,7 @@ Ipv4DGRRouting::LookupDGRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDev
         // random select
         uint32_t selectIndex = m_rand->GetInteger(0, allRoutes.size() - 1);
 
-        Ipv4DGRRoutingTableEntry* route = allRoutes.at(selectIndex);
+        RoutingTableEntry* route = allRoutes.at(selectIndex);
         uint32_t interfaceIdx = route->GetInterface();
 
         rtentry = Create<Ipv4Route>();
@@ -501,7 +496,7 @@ Ipv4DGRRouting::LookupDGRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDev
 }
 
 Ptr<Ipv4Route>
-Ipv4DGRRouting::LookupKShortRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> idev)
+GBR::LookupKShortRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> idev)
 {
     // avoid loop
     DistTag distTag;
@@ -516,8 +511,8 @@ Ipv4DGRRouting::LookupKShortRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const Net
     NS_LOG_LOGIC("Looking for route for destination " << dest);
     Ptr<Ipv4Route> rtentry = 0;
     // store all available routes that bring packets to their destination
-    typedef std::vector<Ipv4DGRRoutingTableEntry*> RouteVec_t;
-    // typedef std::vector<Ipv4DGRRoutingTableEntry *>::const_iterator RouteVecCI_t;
+    typedef std::vector<RoutingTableEntry*> RouteVec_t;
+    // typedef std::vector<RoutingTableEntry *>::const_iterator RouteVecCI_t;
     RouteVec_t allRoutes;
 
     NS_LOG_LOGIC("Number of m_hostRoutes = " << m_hostRoutes.size());
@@ -549,7 +544,7 @@ Ipv4DGRRouting::LookupKShortRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const Net
     {
         // random select
         uint32_t selectIndex = m_rand->GetInteger(0, allRoutes.size() - 1);
-        Ipv4DGRRoutingTableEntry* route = allRoutes.at(selectIndex);
+        RoutingTableEntry* route = allRoutes.at(selectIndex);
         uint32_t interfaceIdx = route->GetInterface();
 
         rtentry = Create<Ipv4Route>();
@@ -570,7 +565,7 @@ Ipv4DGRRouting::LookupKShortRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const Net
 }
 
 // Ptr<Ipv4Route>
-// Ipv4DGRRouting::LookupDDRRoute (Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> idev)
+// GBR::LookupDDRRoute (Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> idev)
 // {
 //   // std::cout << "DDR routing" << std::endl;
 //   BudgetTag bgtTag;
@@ -601,8 +596,8 @@ Ipv4DGRRouting::LookupKShortRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const Net
 //   NS_LOG_LOGIC ("Looking for route for destination " << dest);
 //   Ptr<Ipv4Route> rtentry = 0;
 //   // store all available routes that bring packets to their destination
-//   typedef std::vector<Ipv4DGRRoutingTableEntry*> RouteVec_t;
-//   // typedef std::vector<Ipv4DGRRoutingTableEntry *>::const_iterator RouteVecCI_t;
+//   typedef std::vector<RoutingTableEntry*> RouteVec_t;
+//   // typedef std::vector<RoutingTableEntry *>::const_iterator RouteVecCI_t;
 //   RouteVec_t allRoutes;
 
 //   NS_LOG_LOGIC ("Number of m_hostRoutes = " << m_hostRoutes.size ());
@@ -692,7 +687,7 @@ Ipv4DGRRouting::LookupKShortRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const Net
 //       // random select
 //       uint32_t selectIndex = m_rand->GetInteger (0, allRoutes.size ()-1);
 
-//       Ipv4DGRRoutingTableEntry* route = allRoutes.at (selectIndex);
+//       RoutingTableEntry* route = allRoutes.at (selectIndex);
 //       uint32_t interfaceIdx = route->GetInterface ();
 
 //       rtentry = Create<Ipv4Route> ();
@@ -714,7 +709,7 @@ Ipv4DGRRouting::LookupKShortRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const Net
 // }
 
 uint32_t
-Ipv4DGRRouting::GetNRoutes(void) const
+GBR::GetNRoutes(void) const
 {
     NS_LOG_FUNCTION(this);
     uint32_t n = 0;
@@ -724,8 +719,8 @@ Ipv4DGRRouting::GetNRoutes(void) const
     return n;
 }
 
-Ipv4DGRRoutingTableEntry*
-Ipv4DGRRouting::GetRoute(uint32_t index) const
+RoutingTableEntry*
+GBR::GetRoute(uint32_t index) const
 {
     NS_LOG_FUNCTION(this << index);
     if (index < m_hostRoutes.size())
@@ -769,7 +764,7 @@ Ipv4DGRRouting::GetRoute(uint32_t index) const
 }
 
 void
-Ipv4DGRRouting::RemoveRoute(uint32_t index)
+GBR::RemoveRoute(uint32_t index)
 {
     NS_LOG_FUNCTION(this << index);
     if (index < m_hostRoutes.size())
@@ -823,7 +818,7 @@ Ipv4DGRRouting::RemoveRoute(uint32_t index)
 }
 
 int64_t
-Ipv4DGRRouting::AssignStreams(int64_t stream)
+GBR::AssignStreams(int64_t stream)
 {
     NS_LOG_FUNCTION(this << stream);
     m_rand->SetStream(stream);
@@ -831,7 +826,7 @@ Ipv4DGRRouting::AssignStreams(int64_t stream)
 }
 
 void
-Ipv4DGRRouting::DoDispose(void)
+GBR::DoDispose(void)
 {
     NS_LOG_FUNCTION(this);
     // TODO: Realise memorys
@@ -854,7 +849,7 @@ Ipv4DGRRouting::DoDispose(void)
 }
 
 void
-Ipv4DGRRouting::DoInitialize()
+GBR::DoInitialize()
 {
     NS_LOG_FUNCTION(this);
     // bool addedGlobal = false;
@@ -862,8 +857,7 @@ Ipv4DGRRouting::DoInitialize()
 
     // To Check: An random value is needed to initialize the protocol?
     Time delay = m_unsolicitedUpdate;
-    m_nextUnsolicitedUpdate =
-        Simulator::Schedule(delay, &Ipv4DGRRouting::SendUnsolicitedUpdate, this);
+    m_nextUnsolicitedUpdate = Simulator::Schedule(delay, &GBR::SendUnsolicitedUpdate, this);
 
     uint32_t nodeId = m_ipv4->GetNetDevice(1)->GetNode()->GetId();
     std::stringstream ss;
@@ -874,8 +868,7 @@ Ipv4DGRRouting::DoInitialize()
     // m_outStream = Create<OutputStreamWrapper> ("Node" + strNodeId + "queueStatusErr.txt",
     // std::ios::out);
 
-    m_nextUnsolicitedUpdate =
-        Simulator::Schedule(delay, &Ipv4DGRRouting::SendUnsolicitedUpdate, this);
+    m_nextUnsolicitedUpdate = Simulator::Schedule(delay, &GBR::SendUnsolicitedUpdate, this);
 
     // Initialize the sockets for every netdevice
     for (uint32_t i = 0; i < m_ipv4->GetNInterfaces(); i++)
@@ -911,7 +904,7 @@ Ipv4DGRRouting::DoInitialize()
                 int ret = socket->Bind(local);
                 NS_ASSERT_MSG(ret == 0, "Bind unsuccessful");
 
-                socket->SetRecvCallback(MakeCallback(&Ipv4DGRRouting::Receive, this));
+                socket->SetRecvCallback(MakeCallback(&GBR::Receive, this));
                 socket->SetIpRecvTtl(true);
                 socket->SetRecvPktInfo(true);
 
@@ -928,7 +921,7 @@ Ipv4DGRRouting::DoInitialize()
         m_multicastRecvSocket = Socket::CreateSocket(theNode, tid);
         InetSocketAddress local = InetSocketAddress(DGR_BROAD_CAST, DGR_PORT);
         m_multicastRecvSocket->Bind(local);
-        m_multicastRecvSocket->SetRecvCallback(MakeCallback(&Ipv4DGRRouting::Receive, this));
+        m_multicastRecvSocket->SetRecvCallback(MakeCallback(&GBR::Receive, this));
         m_multicastRecvSocket->SetIpRecvTtl(true);
         m_multicastRecvSocket->SetRecvPktInfo(true);
     }
@@ -938,19 +931,19 @@ Ipv4DGRRouting::DoInitialize()
     //     Time delay = Seconds (m_rand->GetValue (m_minTriggeredUpdateDelay.GetSeconds (),
     //                                             m_maxTriggeredUpdateDelay.GetSeconds ()));
     //     m_nextTriggeredUpdate = Simulator::Schedule (delay,
-    //     &Ipv4DGRRouting::DoSendNeighborStatusUpdate, this, false);
+    //     &GBR::DoSendNeighborStatusUpdate, this, false);
     //   }
 
     // delay = Seconds (m_rand->GetValue (0.01, m_startupDelay.GetSeconds ()));
     // m_nextTriggeredUpdate = Simulator::Schedule (delay,
-    // &Ipv4DGRRouting::SendNeighborStatusRequest, this);
+    // &GBR::SendNeighborStatusRequest, this);
 
     Ipv4RoutingProtocol::DoInitialize();
 }
 
 // Formatted like output of "route -n" command
 void
-Ipv4DGRRouting::PrintRoutingTable(Ptr<OutputStreamWrapper> stream, Time::Unit unit) const
+GBR::PrintRoutingTable(Ptr<OutputStreamWrapper> stream, Time::Unit unit) const
 {
     NS_LOG_FUNCTION(this << stream);
     std::ostream* os = stream->GetStream();
@@ -959,8 +952,8 @@ Ipv4DGRRouting::PrintRoutingTable(Ptr<OutputStreamWrapper> stream, Time::Unit un
     oldState.copyfmt(*os);
 
     *os << "Node: " << m_ipv4->GetObject<Node>()->GetId() << ", Time: " << Now().As(unit)
-        << ", Local time: " << m_ipv4->GetObject<Node>()->GetLocalTime().As(unit)
-        << ", Ipv4DGRRouting table" << std::endl;
+        << ", Local time: " << m_ipv4->GetObject<Node>()->GetLocalTime().As(unit) << ", GBR table"
+        << std::endl;
 
     if (GetNRoutes() > 0)
     {
@@ -968,7 +961,7 @@ Ipv4DGRRouting::PrintRoutingTable(Ptr<OutputStreamWrapper> stream, Time::Unit un
         for (uint32_t j = 0; j < GetNRoutes(); j++)
         {
             std::ostringstream dest, gw, mask, flags, metric;
-            Ipv4DGRRoutingTableEntry route = GetRoute(j);
+            RoutingTableEntry route = GetRoute(j);
             dest << route.GetDest();
             *os << std::setw(13) << dest.str();
             gw << route.GetGateway();
@@ -1017,10 +1010,10 @@ Ipv4DGRRouting::PrintRoutingTable(Ptr<OutputStreamWrapper> stream, Time::Unit un
 }
 
 Ptr<Ipv4Route>
-Ipv4DGRRouting::RouteOutput(Ptr<Packet> p,
-                            const Ipv4Header& header,
-                            Ptr<NetDevice> oif,
-                            Socket::SocketErrno& sockerr)
+GBR::RouteOutput(Ptr<Packet> p,
+                 const Ipv4Header& header,
+                 Ptr<NetDevice> oif,
+                 Socket::SocketErrno& sockerr)
 {
     // std::cout << "at Node: " << m_ipv4->GetNetDevice (0)->GetNode ()->GetId () << "RouteOutput"
     // << std::endl;
@@ -1083,13 +1076,13 @@ Ipv4DGRRouting::RouteOutput(Ptr<Packet> p,
 }
 
 bool
-Ipv4DGRRouting::RouteInput(Ptr<const Packet> p,
-                           const Ipv4Header& header,
-                           Ptr<const NetDevice> idev,
-                           UnicastForwardCallback ucb,
-                           MulticastForwardCallback mcb,
-                           LocalDeliverCallback lcb,
-                           ErrorCallback ecb)
+GBR::RouteInput(Ptr<const Packet> p,
+                const Ipv4Header& header,
+                Ptr<const NetDevice> idev,
+                UnicastForwardCallback ucb,
+                MulticastForwardCallback mcb,
+                LocalDeliverCallback lcb,
+                ErrorCallback ecb)
 {
     NS_LOG_FUNCTION(this << p << header << header.GetSource() << header.GetDestination() << idev
                          << &lcb << &ecb);
@@ -1176,55 +1169,55 @@ Ipv4DGRRouting::RouteInput(Ptr<const Packet> p,
 }
 
 void
-Ipv4DGRRouting::NotifyInterfaceUp(uint32_t i)
+GBR::NotifyInterfaceUp(uint32_t i)
 {
     NS_LOG_FUNCTION(this << i);
     if (m_respondToInterfaceEvents && Simulator::Now().GetSeconds() > 0) // avoid startup events
     {
-        DGRRouteManager::DeleteDGRRoutes();
-        DGRRouteManager::BuildDGRRoutingDatabase();
-        DGRRouteManager::InitializeRoutes();
+        RouteManager::DeleteDGRRoutes();
+        RouteManager::BuildDGRRoutingDatabase();
+        RouteManager::InitializeRoutes();
     }
 }
 
 void
-Ipv4DGRRouting::NotifyInterfaceDown(uint32_t i)
+GBR::NotifyInterfaceDown(uint32_t i)
 {
     NS_LOG_FUNCTION(this << i);
     if (m_respondToInterfaceEvents && Simulator::Now().GetSeconds() > 0) // avoid startup events
     {
-        DGRRouteManager::DeleteDGRRoutes();
-        DGRRouteManager::BuildDGRRoutingDatabase();
-        DGRRouteManager::InitializeRoutes();
+        RouteManager::DeleteDGRRoutes();
+        RouteManager::BuildDGRRoutingDatabase();
+        RouteManager::InitializeRoutes();
     }
 }
 
 void
-Ipv4DGRRouting::NotifyAddAddress(uint32_t interface, Ipv4InterfaceAddress address)
+GBR::NotifyAddAddress(uint32_t interface, Ipv4InterfaceAddress address)
 {
     NS_LOG_FUNCTION(this << interface << address);
     if (m_respondToInterfaceEvents && Simulator::Now().GetSeconds() > 0) // avoid startup events
     {
-        DGRRouteManager::DeleteDGRRoutes();
-        DGRRouteManager::BuildDGRRoutingDatabase();
-        DGRRouteManager::InitializeRoutes();
+        RouteManager::DeleteDGRRoutes();
+        RouteManager::BuildDGRRoutingDatabase();
+        RouteManager::InitializeRoutes();
     }
 }
 
 void
-Ipv4DGRRouting::NotifyRemoveAddress(uint32_t interface, Ipv4InterfaceAddress address)
+GBR::NotifyRemoveAddress(uint32_t interface, Ipv4InterfaceAddress address)
 {
     NS_LOG_FUNCTION(this << interface << address);
     if (m_respondToInterfaceEvents && Simulator::Now().GetSeconds() > 0) // avoid startup events
     {
-        DGRRouteManager::DeleteDGRRoutes();
-        DGRRouteManager::BuildDGRRoutingDatabase();
-        DGRRouteManager::InitializeRoutes();
+        RouteManager::DeleteDGRRoutes();
+        RouteManager::BuildDGRRoutingDatabase();
+        RouteManager::InitializeRoutes();
     }
 }
 
 void
-Ipv4DGRRouting::SetIpv4(Ptr<Ipv4> ipv4)
+GBR::SetIpv4(Ptr<Ipv4> ipv4)
 {
     NS_LOG_FUNCTION(this << ipv4);
     NS_ASSERT(!m_ipv4 && ipv4);
@@ -1232,7 +1225,7 @@ Ipv4DGRRouting::SetIpv4(Ptr<Ipv4> ipv4)
 }
 
 void
-Ipv4DGRRouting::Receive(Ptr<Socket> socket)
+GBR::Receive(Ptr<Socket> socket)
 {
     NS_LOG_FUNCTION(this << socket);
 
@@ -1300,7 +1293,7 @@ Ipv4DGRRouting::Receive(Ptr<Socket> socket)
 }
 
 void
-Ipv4DGRRouting::SendUnsolicitedUpdate()
+GBR::SendUnsolicitedUpdate()
 {
     NS_LOG_FUNCTION(this);
     if (m_nextTriggeredUpdate.IsRunning())
@@ -1310,12 +1303,11 @@ Ipv4DGRRouting::SendUnsolicitedUpdate()
     DoSendNeighborStatusUpdate(true);
     // todo : update the delay, do we need some random in the delay
     Time delay = m_unsolicitedUpdate;
-    m_nextUnsolicitedUpdate =
-        Simulator::Schedule(delay, &Ipv4DGRRouting::SendUnsolicitedUpdate, this);
+    m_nextUnsolicitedUpdate = Simulator::Schedule(delay, &GBR::SendUnsolicitedUpdate, this);
 }
 
 void
-Ipv4DGRRouting::DoSendNeighborStatusUpdate(bool periodic)
+GBR::DoSendNeighborStatusUpdate(bool periodic)
 {
     NS_LOG_FUNCTION(this << (periodic ? " periodic" : " triggered"));
     for (SocketListI iter = m_unicastSocketList.begin(); iter != m_unicastSocketList.end(); iter++)
@@ -1384,10 +1376,10 @@ Ipv4DGRRouting::DoSendNeighborStatusUpdate(bool periodic)
 }
 
 void
-Ipv4DGRRouting::HandleResponses(DgrHeader hdr,
-                                Ipv4Address senderAddress,
-                                uint32_t incomingInterface,
-                                uint8_t hopLimit)
+GBR::HandleResponses(DgrHeader hdr,
+                     Ipv4Address senderAddress,
+                     uint32_t incomingInterface,
+                     uint8_t hopLimit)
 {
     NS_LOG_FUNCTION(this << senderAddress << incomingInterface << int(hopLimit) << hdr);
     if (m_interfaceExclusions.find(incomingInterface) != m_interfaceExclusions.end())
@@ -1427,7 +1419,7 @@ Ipv4DGRRouting::HandleResponses(DgrHeader hdr,
 }
 
 // void
-// Ipv4DGRRouting::HandleRequests (DgrHeader hdr,
+// GBR::HandleRequests (DgrHeader hdr,
 //                                 Ipv4Address senderAddress,
 //                                 uint16_t senderPort,
 //                                 uint32_t incomingInterface,

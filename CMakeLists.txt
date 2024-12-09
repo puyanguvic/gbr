@@ -19,11 +19,11 @@ build_lib(
         model/dgr-udp-application.cc
         model/dgr-tcp-application.cc
         model/dgr-sink.cc
-        model/ipv4-dgr-routing-table-entry.cc
-        model/ipv4-dgr-routing.cc
-        model/dgr-router-interface.cc
-        model/dgr-route-manager.cc
-        model/dgr-route-manager-impl.cc
+        model/routing-table-entry.cc
+        model/ipv4-gbr-routing.cc
+        model/router-interface.cc
+        model/route-manager.cc
+        model/route-manager-impl.cc
         model/route-candidate-queue.cc
         model/dgrv2-queue-disc.cc
         helper/ipv4-dgr-routing-helper.cc
@@ -37,11 +37,11 @@ build_lib(
         model/dgr-udp-application.h
         model/dgr-tcp-application.h
         model/dgr-sink.h
-        model/ipv4-dgr-routing-table-entry.h
-        model/ipv4-dgr-routing.h
-        model/dgr-router-interface.h
-        model/dgr-route-manager.h
-        model/dgr-route-manager-impl.h
+        model/routing-table-entry.h
+        model/ipv4-gbr-routing.h
+        model/router-interface.h
+        model/route-manager.h
+        model/route-manager-impl.h
         model/route-candidate-queue.h
         model/dgrv2-queue-disc.h
         helper/ipv4-dgr-routing-helper.h

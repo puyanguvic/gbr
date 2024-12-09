@@ -1,7 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright 2007 University of Washington
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation;
@@ -18,15 +18,18 @@
  * Author: Tom Henderson (tomhend@u.washington.edu)
  */
 
+#include "route-manager.h"
+
+#include "route-manager-impl.h"
+
 #include "ns3/assert.h"
 #include "ns3/log.h"
 #include "ns3/simulation-singleton.h"
-#include "dgr-route-manager.h"
-#include "dgr-route-manager-impl.h"
 
-namespace ns3 {
+namespace ns3
+{
 
-NS_LOG_COMPONENT_DEFINE ("DGRRouteManager");
+NS_LOG_COMPONENT_DEFINE("RouteManager");
 
 // ---------------------------------------------------------------------------
 //
@@ -35,36 +38,32 @@ NS_LOG_COMPONENT_DEFINE ("DGRRouteManager");
 // ---------------------------------------------------------------------------
 
 void
-DGRRouteManager::DeleteDGRRoutes ()
+RouteManager::DeleteDGRRoutes()
 {
-  NS_LOG_FUNCTION_NOARGS ();
-  SimulationSingleton<DGRRouteManagerImpl>::Get ()->
-  DeleteDGRRoutes ();
+    NS_LOG_FUNCTION_NOARGS();
+    SimulationSingleton<RouteManagerImpl>::Get()->DeleteDGRRoutes();
 }
 
 void
-DGRRouteManager::BuildDGRRoutingDatabase (void) 
+RouteManager::BuildDGRRoutingDatabase(void)
 {
-  NS_LOG_FUNCTION_NOARGS ();
-  SimulationSingleton<DGRRouteManagerImpl>::Get ()->
-  BuildDGRRoutingDatabase ();
+    NS_LOG_FUNCTION_NOARGS();
+    SimulationSingleton<RouteManagerImpl>::Get()->BuildDGRRoutingDatabase();
 }
 
 void
-DGRRouteManager::InitializeRoutes (void)
+RouteManager::InitializeRoutes(void)
 {
-  NS_LOG_FUNCTION_NOARGS ();
-  SimulationSingleton<DGRRouteManagerImpl>::Get ()->
-  InitializeRoutes ();
+    NS_LOG_FUNCTION_NOARGS();
+    SimulationSingleton<RouteManagerImpl>::Get()->InitializeRoutes();
 }
 
 uint32_t
-DGRRouteManager::AllocateRouterId (void)
+RouteManager::AllocateRouterId(void)
 {
-  NS_LOG_FUNCTION_NOARGS ();
-  static uint32_t routerId = 0;
-  return routerId++;
+    NS_LOG_FUNCTION_NOARGS();
+    static uint32_t routerId = 0;
+    return routerId++;
 }
-
 
 } // namespace ns3

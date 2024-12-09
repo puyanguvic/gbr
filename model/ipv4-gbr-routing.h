@@ -17,16 +17,13 @@
 //
 //
 
-// #ifndef IPV4_GLOBAL_ROUTING_H
-// #define IPV4_GLOBAL_ROUTING_H
+#ifndef IPV4_GBR_ROUTING_H
+#define IPV4_GBR_ROUTING_H
 
-#ifndef IPV4_DGR_ROUTING_H
-#define IPV4_DGR_ROUTING_H
-
-#include "dgr-route-manager-impl.h"
-#include "ipv4-dgr-routing-table-entry.h"
 #include "neighbor-status-database.h"
 #include "packet-headers.h"
+#include "route-manager-impl.h"
+#include "routing-table-entry.h"
 
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv4-header.h"
@@ -48,7 +45,7 @@ class NetDevice;
 class Ipv4Interface;
 class Ipv4Address;
 class Ipv4Header;
-class Ipv4DGRRoutingTableEntry;
+class RoutingTableEntry;
 class Ipv4MulticastRoutingTableEntry;
 class Node;
 
@@ -87,7 +84,7 @@ typedef enum
  * \see Ipv4RoutingProtocol
  * \see GlobalRouteManager
  */
-class Ipv4DGRRouting : public Ipv4RoutingProtocol
+class GBR : public Ipv4RoutingProtocol
 {
   public:
     /**
@@ -103,8 +100,8 @@ class Ipv4DGRRouting : public Ipv4RoutingProtocol
      *
      * \see Ipv4GlobalRouting
      */
-    Ipv4DGRRouting();
-    ~Ipv4DGRRouting();
+    GBR();
+    ~GBR();
 
     // These methods inherited from base class
     Ptr<Ipv4Route> RouteOutput(Ptr<Packet> p,
@@ -234,7 +231,7 @@ class Ipv4DGRRouting : public Ipv4RoutingProtocol
      * \see Ipv4RoutingTableEntry
      * \see Ipv4GlobalRouting::RemoveRoute
      */
-    Ipv4DGRRoutingTableEntry* GetRoute(uint32_t i) const;
+    RoutingTableEntry* GetRoute(uint32_t i) const;
 
     /**
      * \brief Remove a route from the global unicast routing table.
@@ -256,7 +253,7 @@ class Ipv4DGRRouting : public Ipv4RoutingProtocol
 
     /**
      * @brief Build the routing database by gathering Link State Advertisements
-     * from each node exporting a DGRRouter interface.
+     * from each node exporting a Router interface.
      */
     // void BuildDGRNeighbourStateDatabase ();
 
@@ -270,7 +267,7 @@ class Ipv4DGRRouting : public Ipv4RoutingProtocol
      */
     int64_t AssignStreams(int64_t stream);
 
-    // static bool CompareRouteCost(Ipv4DGRRoutingTableEntry* route1, Ipv4DGRRoutingTableEntry*
+    // static bool CompareRouteCost(RoutingTableEntry* route1, RoutingTableEntry*
     // route2);
     /**
      * \brief Lookup in the forwarding table for destination.
@@ -307,25 +304,25 @@ class Ipv4DGRRouting : public Ipv4RoutingProtocol
     Ptr<UniformRandomVariable> m_rand;
 
     /// container of Ipv4RoutingTableEntry (routes to hosts)
-    typedef std::list<Ipv4DGRRoutingTableEntry*> HostRoutes;
+    typedef std::list<RoutingTableEntry*> HostRoutes;
     /// const iterator of container of Ipv4RoutingTableEntry (routes to hosts)
-    typedef std::list<Ipv4DGRRoutingTableEntry*>::const_iterator HostRoutesCI;
+    typedef std::list<RoutingTableEntry*>::const_iterator HostRoutesCI;
     /// iterator of container of Ipv4RoutingTableEntry (routes to hosts)
-    typedef std::list<Ipv4DGRRoutingTableEntry*>::iterator HostRoutesI;
+    typedef std::list<RoutingTableEntry*>::iterator HostRoutesI;
 
     /// container of Ipv4RoutingTableEntry (routes to networks)
-    typedef std::list<Ipv4DGRRoutingTableEntry*> NetworkRoutes;
+    typedef std::list<RoutingTableEntry*> NetworkRoutes;
     /// const iterator of container of Ipv4RoutingTableEntry (routes to networks)
-    typedef std::list<Ipv4DGRRoutingTableEntry*>::const_iterator NetworkRoutesCI;
+    typedef std::list<RoutingTableEntry*>::const_iterator NetworkRoutesCI;
     /// iterator of container of Ipv4RoutingTableEntry (routes to networks)
-    typedef std::list<Ipv4DGRRoutingTableEntry*>::iterator NetworkRoutesI;
+    typedef std::list<RoutingTableEntry*>::iterator NetworkRoutesI;
 
     /// container of Ipv4RoutingTableEntry (routes to external AS)
-    typedef std::list<Ipv4DGRRoutingTableEntry*> ASExternalRoutes;
+    typedef std::list<RoutingTableEntry*> ASExternalRoutes;
     /// const iterator of container of Ipv4RoutingTableEntry (routes to external AS)
-    typedef std::list<Ipv4DGRRoutingTableEntry*>::const_iterator ASExternalRoutesCI;
+    typedef std::list<RoutingTableEntry*>::const_iterator ASExternalRoutesCI;
     /// iterator of container of Ipv4RoutingTableEntry (routes to external AS)
-    typedef std::list<Ipv4DGRRoutingTableEntry*>::iterator ASExternalRoutesI;
+    typedef std::list<RoutingTableEntry*>::iterator ASExternalRoutesI;
 
     HostRoutes m_hostRoutes;             //!< Routes to hosts
     NetworkRoutes m_networkRoutes;       //!< Routes to networks
@@ -424,6 +421,6 @@ class Ipv4DGRRouting : public Ipv4RoutingProtocol
     bool m_initialized; //!< flag to allow socket's late-creation.
 };
 
-} // Namespace ns3
+} // namespace ns3
 
-#endif /* IPV4_DGR_ROUTING_H */
+#endif /* IPV4_GBR_ROUTING_H */
