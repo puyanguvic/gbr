@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "dgr-tcp-application.h"
+#include "tcp-application.h"
 
 #include "packet-tags.h"
 

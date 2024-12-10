@@ -1,5 +1,5 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-#include "dgr-sink.h"
+#include "sink.h"
 
 #include "packet-tags.h"
 
@@ -23,49 +23,48 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE("DGRPacketSink");
+NS_LOG_COMPONENT_DEFINE("Sink");
 
-NS_OBJECT_ENSURE_REGISTERED(DGRPacketSink);
+NS_OBJECT_ENSURE_REGISTERED(Sink);
 
 TypeId
-DGRPacketSink::GetTypeId(void)
+Sink::GetTypeId(void)
 {
-    static TypeId tid =
-        TypeId("ns3::DGRPacketSink")
-            .SetParent<Application>()
-            .SetGroupName("Applications")
-            .AddConstructor<DGRPacketSink>()
-            .AddAttribute("Local",
-                          "The Address on which to Bind the rx socket.",
-                          AddressValue(),
-                          MakeAddressAccessor(&DGRPacketSink::m_local),
-                          MakeAddressChecker())
-            .AddAttribute("Protocol",
-                          "The type id of the protocol to use for the rx socket.",
-                          TypeIdValue(UdpSocketFactory::GetTypeId()),
-                          MakeTypeIdAccessor(&DGRPacketSink::m_tid),
-                          MakeTypeIdChecker())
-            .AddAttribute("EnableSeqTsSizeHeader",
-                          "Enable optional header tracing of SeqTsSizeHeader",
-                          BooleanValue(false),
-                          MakeBooleanAccessor(&DGRPacketSink::m_enableSeqTsSizeHeader),
-                          MakeBooleanChecker())
-            .AddTraceSource("Rx",
-                            "A packet has been received",
-                            MakeTraceSourceAccessor(&DGRPacketSink::m_rxTrace),
-                            "ns3::Packet::AddressTracedCallback")
-            .AddTraceSource("RxWithAddresses",
-                            "A packet has been received",
-                            MakeTraceSourceAccessor(&DGRPacketSink::m_rxTraceWithAddresses),
-                            "ns3::Packet::TwoAddressTracedCallback")
-            .AddTraceSource("RxWithSeqTsSize",
-                            "A packet with SeqTsSize header has been received",
-                            MakeTraceSourceAccessor(&DGRPacketSink::m_rxTraceWithSeqTsSize),
-                            "ns3::PacketSink::SeqTsSizeCallback");
+    static TypeId tid = TypeId("ns3::Sink")
+                            .SetParent<Application>()
+                            .SetGroupName("Applications")
+                            .AddConstructor<Sink>()
+                            .AddAttribute("Local",
+                                          "The Address on which to Bind the rx socket.",
+                                          AddressValue(),
+                                          MakeAddressAccessor(&Sink::m_local),
+                                          MakeAddressChecker())
+                            .AddAttribute("Protocol",
+                                          "The type id of the protocol to use for the rx socket.",
+                                          TypeIdValue(UdpSocketFactory::GetTypeId()),
+                                          MakeTypeIdAccessor(&Sink::m_tid),
+                                          MakeTypeIdChecker())
+                            .AddAttribute("EnableSeqTsSizeHeader",
+                                          "Enable optional header tracing of SeqTsSizeHeader",
+                                          BooleanValue(false),
+                                          MakeBooleanAccessor(&Sink::m_enableSeqTsSizeHeader),
+                                          MakeBooleanChecker())
+                            .AddTraceSource("Rx",
+                                            "A packet has been received",
+                                            MakeTraceSourceAccessor(&Sink::m_rxTrace),
+                                            "ns3::Packet::AddressTracedCallback")
+                            .AddTraceSource("RxWithAddresses",
+                                            "A packet has been received",
+                                            MakeTraceSourceAccessor(&Sink::m_rxTraceWithAddresses),
+                                            "ns3::Packet::TwoAddressTracedCallback")
+                            .AddTraceSource("RxWithSeqTsSize",
+                                            "A packet with SeqTsSize header has been received",
+                                            MakeTraceSourceAccessor(&Sink::m_rxTraceWithSeqTsSize),
+                                            "ns3::PacketSink::SeqTsSizeCallback");
     return tid;
 }
 
-DGRPacketSink::DGRPacketSink()
+Sink::Sink()
 {
     NS_LOG_FUNCTION(this);
     m_socket = 0;
@@ -75,13 +74,13 @@ DGRPacketSink::DGRPacketSink()
     // Simulator::Schedule (MilliSeconds (interval), &MonitorThroughput, interval);
 }
 
-DGRPacketSink::~DGRPacketSink()
+Sink::~Sink()
 {
     NS_LOG_FUNCTION(this);
 }
 
 // void
-// DGRPacketSink::MonitorThroughput (uint32_t interval)
+// Sink::MonitorThroughput (uint32_t interval)
 // {
 //   uint64_t value_new = GetTotalRx ();
 //   Time curTime = Now ();
@@ -93,28 +92,28 @@ DGRPacketSink::~DGRPacketSink()
 // }
 
 uint64_t
-DGRPacketSink::GetTotalRx() const
+Sink::GetTotalRx() const
 {
     NS_LOG_FUNCTION(this);
     return m_totalRx;
 }
 
 Ptr<Socket>
-DGRPacketSink::GetListeningSocket(void) const
+Sink::GetListeningSocket(void) const
 {
     NS_LOG_FUNCTION(this);
     return m_socket;
 }
 
 std::list<Ptr<Socket>>
-DGRPacketSink::GetAcceptedSockets(void) const
+Sink::GetAcceptedSockets(void) const
 {
     NS_LOG_FUNCTION(this);
     return m_socketList;
 }
 
 Time
-DGRPacketSink::GetDelay(const Ptr<Packet>& p) const
+Sink::GetDelay(const Ptr<Packet>& p) const
 {
     NS_LOG_FUNCTION(this);
     TimestampTag txTimeTag;
@@ -125,7 +124,7 @@ DGRPacketSink::GetDelay(const Ptr<Packet>& p) const
 }
 
 void
-DGRPacketSink::DoDispose(void)
+Sink::DoDispose(void)
 {
     NS_LOG_FUNCTION(this);
     m_socket = 0;
@@ -137,7 +136,7 @@ DGRPacketSink::DoDispose(void)
 
 // Application Methods
 void
-DGRPacketSink::StartApplication() // Called at time specified by Start
+Sink::StartApplication() // Called at time specified by Start
 {
     NS_LOG_FUNCTION(this);
     // Create the socket if not already
@@ -165,15 +164,15 @@ DGRPacketSink::StartApplication() // Called at time specified by Start
         }
     }
 
-    m_socket->SetRecvCallback(MakeCallback(&DGRPacketSink::HandleRead, this));
+    m_socket->SetRecvCallback(MakeCallback(&Sink::HandleRead, this));
     m_socket->SetAcceptCallback(MakeNullCallback<bool, Ptr<Socket>, const Address&>(),
-                                MakeCallback(&DGRPacketSink::HandleAccept, this));
-    m_socket->SetCloseCallbacks(MakeCallback(&DGRPacketSink::HandlePeerClose, this),
-                                MakeCallback(&DGRPacketSink::HandlePeerError, this));
+                                MakeCallback(&Sink::HandleAccept, this));
+    m_socket->SetCloseCallbacks(MakeCallback(&Sink::HandlePeerClose, this),
+                                MakeCallback(&Sink::HandlePeerError, this));
 }
 
 void
-DGRPacketSink::StopApplication() // Called at time specified by Stop
+Sink::StopApplication() // Called at time specified by Stop
 {
     NS_LOG_FUNCTION(this);
     while (!m_socketList.empty()) // these are accepted sockets, close them
@@ -192,7 +191,7 @@ DGRPacketSink::StopApplication() // Called at time specified by Stop
 int i = 0; // count packets
 
 void
-DGRPacketSink::HandleRead(Ptr<Socket> socket)
+Sink::HandleRead(Ptr<Socket> socket)
 {
     NS_LOG_FUNCTION(this << socket);
     Ptr<Packet> packet;
@@ -265,9 +264,7 @@ DGRPacketSink::HandleRead(Ptr<Socket> socket)
 }
 
 void
-DGRPacketSink::PacketReceived(const Ptr<Packet>& p,
-                              const Address& from,
-                              const Address& localAddress)
+Sink::PacketReceived(const Ptr<Packet>& p, const Address& from, const Address& localAddress)
 {
     SeqTsSizeHeader header;
     Ptr<Packet> buffer;
@@ -307,23 +304,23 @@ DGRPacketSink::PacketReceived(const Ptr<Packet>& p,
 }
 
 void
-DGRPacketSink::HandlePeerClose(Ptr<Socket> socket)
+Sink::HandlePeerClose(Ptr<Socket> socket)
 {
     NS_LOG_FUNCTION(this << socket);
 }
 
 void
-DGRPacketSink::HandlePeerError(Ptr<Socket> socket)
+Sink::HandlePeerError(Ptr<Socket> socket)
 {
     NS_LOG_FUNCTION(this << socket);
 }
 
 void
-DGRPacketSink::HandleAccept(Ptr<Socket> s, const Address& from)
+Sink::HandleAccept(Ptr<Socket> s, const Address& from)
 {
     NS_LOG_FUNCTION(this << s << from);
-    s->SetRecvCallback(MakeCallback(&DGRPacketSink::HandleRead, this));
+    s->SetRecvCallback(MakeCallback(&Sink::HandleRead, this));
     m_socketList.push_back(s);
 }
 
-} // Namespace ns3
+} // namespace ns3

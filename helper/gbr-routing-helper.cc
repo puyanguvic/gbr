@@ -17,7 +17,7 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-#include "ipv4-dgr-routing-helper.h"
+#include "gbr-routing-helper.h"
 
 #include "ns3/ipv4-gbr-routing.h"
 #include "ns3/ipv4-list-routing.h"

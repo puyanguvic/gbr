@@ -16,9 +16,9 @@ build_lib(
         model/packet-tags.cc
         model/packet-headers.cc
         model/neighbor-status-database.cc
-        model/dgr-udp-application.cc
-        model/dgr-tcp-application.cc
-        model/dgr-sink.cc
+        model/udp-application.cc
+        model/tcp-application.cc
+        model/sink.cc
         model/routing-table-entry.cc
         model/ipv4-gbr-routing.cc
         model/router-interface.cc
@@ -26,7 +26,7 @@ build_lib(
         model/route-manager-impl.cc
         model/route-candidate-queue.cc
         model/dgrv2-queue-disc.cc
-        helper/ipv4-dgr-routing-helper.cc
+        helper/gbr-routing-helper.cc
         helper/dgr-application-helper.cc
         helper/dgr-tcp-application-helper.cc
         helper/dgr-sink-helper.cc
@@ -34,9 +34,9 @@ build_lib(
         model/packet-tags.h
         model/packet-headers.h
         model/neighbor-status-database.h
-        model/dgr-udp-application.h
-        model/dgr-tcp-application.h
-        model/dgr-sink.h
+        model/udp-application.h
+        model/tcp-application.h
+        model/sink.h
         model/routing-table-entry.h
         model/ipv4-gbr-routing.h
         model/router-interface.h
@@ -44,7 +44,7 @@ build_lib(
         model/route-manager-impl.h
         model/route-candidate-queue.h
         model/dgrv2-queue-disc.h
-        helper/ipv4-dgr-routing-helper.h
+        helper/gbr-routing-helper.h
         helper/dgr-application-helper.h
         helper/dgr-tcp-application-helper.h
         helper/dgr-sink-helper.h

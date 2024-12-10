@@ -8,7 +8,7 @@
 // #include "ns3/internet-module.h"
 // #include "ns3/flow-monitor-module.h"
 
-#include "dgr-udp-application.h"
+#include "udp-application.h"
 
 #include "packet-tags.h"
 
@@ -19,11 +19,11 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE("DGRUdpApplication");
+NS_LOG_COMPONENT_DEFINE("UdpApplication");
 
-NS_OBJECT_ENSURE_REGISTERED(DGRUdpApplication);
+NS_OBJECT_ENSURE_REGISTERED(UdpApplication);
 
-DGRUdpApplication::DGRUdpApplication()
+UdpApplication::UdpApplication()
     : m_socket(nullptr),
       m_peer(),
       m_packetSize(0),
@@ -39,35 +39,35 @@ DGRUdpApplication::DGRUdpApplication()
 {
 }
 
-DGRUdpApplication::~DGRUdpApplication()
+UdpApplication::~UdpApplication()
 {
     m_socket = nullptr;
 }
 
 TypeId
-DGRUdpApplication::GetTypeId()
+UdpApplication::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::DGRUdpApplication")
+    static TypeId tid = TypeId("ns3::UdpApplication")
                             .SetParent<Application>()
                             .SetGroupName("DGRv2")
-                            .AddConstructor<DGRUdpApplication>()
+                            .AddConstructor<UdpApplication>()
         // .AddAttribute ("Variable_bitrate",
         //                "Enable the VBR",
         //                BooleanValue (false),
-        //                MakeBooleanAccessor (&DGRUdpApplication::m_vbr),
+        //                MakeBooleanAccessor (&UdpApplication::m_vbr),
         //                MakeBooleanChecker ())
         ;
     return tid;
 }
 
 void
-DGRUdpApplication::Setup(Ptr<Socket> socket,
-                         Address sinkAddress,
-                         uint32_t packetSize,
-                         uint32_t nPackets,
-                         DataRate dataRate,
-                         uint32_t budget,
-                         bool flag)
+UdpApplication::Setup(Ptr<Socket> socket,
+                      Address sinkAddress,
+                      uint32_t packetSize,
+                      uint32_t nPackets,
+                      DataRate dataRate,
+                      uint32_t budget,
+                      bool flag)
 {
     m_socket = socket;
     m_peer = sinkAddress;
@@ -79,12 +79,12 @@ DGRUdpApplication::Setup(Ptr<Socket> socket,
 }
 
 void
-DGRUdpApplication::Setup(Ptr<Socket> socket,
-                         Address sinkAddress,
-                         uint32_t packetSize,
-                         uint32_t nPackets,
-                         DataRate dataRate,
-                         bool flag)
+UdpApplication::Setup(Ptr<Socket> socket,
+                      Address sinkAddress,
+                      uint32_t packetSize,
+                      uint32_t nPackets,
+                      DataRate dataRate,
+                      bool flag)
 {
     m_socket = socket;
     m_peer = sinkAddress;
@@ -95,13 +95,13 @@ DGRUdpApplication::Setup(Ptr<Socket> socket,
 }
 
 void
-DGRUdpApplication::SetPriority(bool priority)
+UdpApplication::SetPriority(bool priority)
 {
     m_priority = priority;
 }
 
 void
-DGRUdpApplication::StartApplication(void)
+UdpApplication::StartApplication(void)
 {
     m_running = true;
     m_packetSent = 0;
@@ -111,7 +111,7 @@ DGRUdpApplication::StartApplication(void)
 }
 
 void
-DGRUdpApplication::StopApplication(void)
+UdpApplication::StopApplication(void)
 {
     m_running = false;
     if (m_sendEvent.IsRunning())
@@ -125,7 +125,7 @@ DGRUdpApplication::StopApplication(void)
 }
 
 void
-DGRUdpApplication::SendPacket()
+UdpApplication::SendPacket()
 {
     TimestampTag txTimeTag;
     FlagTag flagTag;
@@ -156,7 +156,7 @@ DGRUdpApplication::SendPacket()
 }
 
 void
-DGRUdpApplication::ScheduleTx()
+UdpApplication::ScheduleTx()
 {
     if (m_running)
     {
@@ -166,18 +166,18 @@ DGRUdpApplication::ScheduleTx()
             double rate = static_cast<double>(rand->GetInteger(1, 100)) / 100;
             Time tNext(
                 Seconds(rate * m_packetSize * 8 / static_cast<double>(m_dataRate.GetBitRate())));
-            m_sendEvent = Simulator::Schedule(tNext, &DGRUdpApplication::SendPacket, this);
+            m_sendEvent = Simulator::Schedule(tNext, &UdpApplication::SendPacket, this);
         }
         else
         {
             Time tNext(Seconds(m_packetSize * 8 / static_cast<double>(m_dataRate.GetBitRate())));
-            m_sendEvent = Simulator::Schedule(tNext, &DGRUdpApplication::SendPacket, this);
+            m_sendEvent = Simulator::Schedule(tNext, &UdpApplication::SendPacket, this);
         }
     }
 }
 
 void
-DGRUdpApplication::ChangeRate(DataRate newDataRate)
+UdpApplication::ChangeRate(DataRate newDataRate)
 {
     m_dataRate = newDataRate;
 }
