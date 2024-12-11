@@ -52,13 +52,13 @@ class RouteManager
      * RouterInterface
      *
      */
-    static void DeleteDGRRoutes();
+    static void DeleteRoutes();
 
     /**
      * @brief Build the routing database by gathering Link State Advertisements
      * from each node exporting a Router interface.
      */
-    static void BuildDGRRoutingDatabase();
+    static void BuildRoutingDatabase();
 
     /**
      * @brief Compute routes using a Dijkstra SPF computation and populate

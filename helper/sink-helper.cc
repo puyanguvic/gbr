@@ -18,7 +18,7 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 
-#include "dgr-sink-helper.h"
+#include "sink-helper.h"
 
 #include "ns3/gbr-module.h"
 #include "ns3/inet-socket-address.h"
@@ -28,38 +28,38 @@
 namespace ns3
 {
 
-DGRSinkHelper::DGRSinkHelper(std::string protocol, Address address)
+SinkHelper::SinkHelper(std::string protocol, Address address)
 {
     m_factory.SetTypeId("ns3::DGRPacketSink");
     m_factory.Set("Protocol", StringValue(protocol));
     m_factory.Set("Local", AddressValue(address));
 }
 
-DGRSinkHelper::~DGRSinkHelper()
+SinkHelper::~SinkHelper()
 {
 }
 
 void
-DGRSinkHelper::SetAttribute(std::string name, const AttributeValue& value)
+SinkHelper::SetAttribute(std::string name, const AttributeValue& value)
 {
     m_factory.Set(name, value);
 }
 
 ApplicationContainer
-DGRSinkHelper::Install(Ptr<Node> node) const
+SinkHelper::Install(Ptr<Node> node) const
 {
     return ApplicationContainer(InstallPriv(node));
 }
 
 ApplicationContainer
-DGRSinkHelper::Install(std::string nodeName) const
+SinkHelper::Install(std::string nodeName) const
 {
     Ptr<Node> node = Names::Find<Node>(nodeName);
     return ApplicationContainer(InstallPriv(node));
 }
 
 ApplicationContainer
-DGRSinkHelper::Install(NodeContainer c) const
+SinkHelper::Install(NodeContainer c) const
 {
     ApplicationContainer apps;
     for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
@@ -71,7 +71,7 @@ DGRSinkHelper::Install(NodeContainer c) const
 }
 
 Ptr<Application>
-DGRSinkHelper::InstallPriv(Ptr<Node> node) const
+SinkHelper::InstallPriv(Ptr<Node> node) const
 {
     Ptr<Application> app = m_factory.Create<Application>();
     node->AddApplication(app);

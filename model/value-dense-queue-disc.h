@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-#ifndef DGR_v2_QUEUE_DISC_H
-#define DGR_v2_QUEUE_DISC_H
+#ifndef VALUE_DENSE_QUEUE_DISC_H
+#define VALUE_DENSE_QUEUE_DISC_H
 
 #include "packet-headers.h"
 
@@ -11,7 +11,7 @@
 namespace ns3
 {
 
-class DGRv2QueueDisc : public QueueDisc
+class ValueDenseQueueDisc : public QueueDisc
 {
   public:
     /**
@@ -20,13 +20,13 @@ class DGRv2QueueDisc : public QueueDisc
      */
     static TypeId GetTypeId(void);
     /**
-     * \brief DGRv2QueueDisc constructor
+     * \brief ValueDenseQueueDisc constructor
      */
-    DGRv2QueueDisc();
+    ValueDenseQueueDisc();
     /**
-     * \brief DGRv2QueueDisc Destructor
+     * \brief ValueDenseQueueDisc Destructor
      */
-    ~DGRv2QueueDisc();
+    ~ValueDenseQueueDisc();
 
     // Reasons for dropping packets
     static constexpr const char* LIMIT_EXCEEDED_DROP =
@@ -52,23 +52,6 @@ class DGRv2QueueDisc : public QueueDisc
     void InitializeParams(void) override;
 
     uint32_t EnqueueClassify(Ptr<QueueDiscItem> item);
-};
-
-class DGRv2PacketFilter : public PacketFilter
-{
-  public:
-    /**
-     * \brief Get the type ID.
-     * \return the object TypeId
-     */
-    static TypeId GetTypeId();
-
-    DGRv2PacketFilter();
-    ~DGRv2PacketFilter() override;
-
-  private:
-    bool CheckProtocol(Ptr<QueueDiscItem> item) const override;
-    int32_t DoClassify(Ptr<QueueDiscItem> item) const override;
 };
 
 } // namespace ns3

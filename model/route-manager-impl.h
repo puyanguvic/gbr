@@ -729,13 +729,13 @@ class RouteManagerImpl
      * \todo  separate manually assigned static routes from static routes that
      * the global routing code injects, and only delete the latter
      */
-    virtual void DeleteDGRRoutes();
+    virtual void DeleteRoutes();
 
     /**
      * @brief Build the routing database by gathering Link State Advertisements
      * from each node exporting a Router interface.
      */
-    virtual void BuildDGRRoutingDatabase();
+    virtual void BuildRoutingDatabase();
 
     /**
      * @brief Compute routes using a Dijkstra SPF computation and populate

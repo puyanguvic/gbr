@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "dgrv2-queue-disc.h"
+#include "value-dense-queue-disc.h"
 
 #include "packet-tags.h"
 
@@ -16,18 +16,18 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE("DGRv2QueueDisc");
+NS_LOG_COMPONENT_DEFINE("ValueDenseQueueDisc");
 
-NS_OBJECT_ENSURE_REGISTERED(DGRv2QueueDisc);
+NS_OBJECT_ENSURE_REGISTERED(ValueDenseQueueDisc);
 
 TypeId
-DGRv2QueueDisc::GetTypeId(void)
+ValueDenseQueueDisc::GetTypeId(void)
 {
     static TypeId tid =
-        TypeId("ns3::DGRv2QueueDisc")
+        TypeId("ns3::ValueDenseQueueDisc")
             .SetParent<QueueDisc>()
-            .SetGroupName("DGRv2")
-            .AddConstructor<DGRv2QueueDisc>()
+            .SetGroupName("GBR")
+            .AddConstructor<ValueDenseQueueDisc>()
             .AddAttribute("MaxSize",
                           "The maximum size accepted by this queue disc.",
                           QueueSizeValue(QueueSize("3MB")),
@@ -36,19 +36,19 @@ DGRv2QueueDisc::GetTypeId(void)
     return tid;
 }
 
-DGRv2QueueDisc::DGRv2QueueDisc()
+ValueDenseQueueDisc::ValueDenseQueueDisc()
     : QueueDisc(QueueDiscSizePolicy::MULTIPLE_QUEUES, QueueSizeUnit::BYTES)
 {
     NS_LOG_FUNCTION(this);
 }
 
-DGRv2QueueDisc::~DGRv2QueueDisc()
+ValueDenseQueueDisc::~ValueDenseQueueDisc()
 {
     NS_LOG_FUNCTION(this);
 }
 
 uint32_t
-DGRv2QueueDisc::GetQueueStatus()
+ValueDenseQueueDisc::GetQueueStatus()
 {
     uint32_t currentSize = GetInternalQueue(0)->GetCurrentSize().GetValue();
     uint32_t maxSize = GetInternalQueue(0)->GetMaxSize().GetValue();
@@ -56,7 +56,7 @@ DGRv2QueueDisc::GetQueueStatus()
 }
 
 uint32_t
-DGRv2QueueDisc::GetQueueDelay()
+ValueDenseQueueDisc::GetQueueDelay()
 {
     // in microsecond
     uint32_t currentSize = GetInternalQueue(0)->GetCurrentSize().GetValue();
@@ -65,7 +65,7 @@ DGRv2QueueDisc::GetQueueDelay()
 }
 
 bool
-DGRv2QueueDisc::DoEnqueue(Ptr<QueueDiscItem> item)
+ValueDenseQueueDisc::DoEnqueue(Ptr<QueueDiscItem> item)
 {
     NS_LOG_FUNCTION(this << item);
     uint32_t band = EnqueueClassify(item);
@@ -92,7 +92,7 @@ DGRv2QueueDisc::DoEnqueue(Ptr<QueueDiscItem> item)
 }
 
 Ptr<QueueDiscItem>
-DGRv2QueueDisc::DoDequeue(void)
+ValueDenseQueueDisc::DoDequeue(void)
 {
     NS_LOG_FUNCTION(this);
 
@@ -114,7 +114,7 @@ DGRv2QueueDisc::DoDequeue(void)
 }
 
 Ptr<const QueueDiscItem>
-DGRv2QueueDisc::DoPeek(void)
+ValueDenseQueueDisc::DoPeek(void)
 {
     NS_LOG_FUNCTION(this);
 
@@ -135,18 +135,18 @@ DGRv2QueueDisc::DoPeek(void)
 }
 
 bool
-DGRv2QueueDisc::CheckConfig(void)
+ValueDenseQueueDisc::CheckConfig(void)
 {
     NS_LOG_FUNCTION(this);
     if (GetNQueueDiscClasses() > 0)
     {
-        NS_LOG_ERROR("DGRv2QueueDisc cannot have classes");
+        NS_LOG_ERROR("ValueDenseQueueDisc cannot have classes");
         return false;
     }
 
     if (GetNPacketFilters() != 0)
     {
-        NS_LOG_ERROR("DGRv2QueueDisc needs no packet filter");
+        NS_LOG_ERROR("ValueDenseQueueDisc needs no packet filter");
         return false;
     }
 
@@ -174,14 +174,14 @@ DGRv2QueueDisc::CheckConfig(void)
     if (GetInternalQueue(0)->GetMaxSize().GetUnit() != QueueSizeUnit::BYTES ||
         GetInternalQueue(1)->GetMaxSize().GetUnit() != QueueSizeUnit::BYTES)
     {
-        NS_LOG_ERROR("DGRv2QueueDisc needs 2 internal queues operating in BYTES mode");
+        NS_LOG_ERROR("ValueDenseQueueDisc needs 2 internal queues operating in BYTES mode");
         return false;
     }
     return true;
 }
 
 void
-DGRv2QueueDisc::InitializeParams(void)
+ValueDenseQueueDisc::InitializeParams(void)
 {
     m_fastWeight = 10;
     m_normalWeight = 1;
@@ -191,49 +191,7 @@ DGRv2QueueDisc::InitializeParams(void)
 }
 
 uint32_t
-DGRv2QueueDisc::EnqueueClassify(Ptr<QueueDiscItem> item)
-{
-    PriorityTag priorityTag;
-    if (item->GetPacket()->PeekPacketTag(priorityTag))
-    {
-        return DELAY_SENSITIVE;
-    }
-    else
-    {
-        return BEST_EFFORT;
-    }
-}
-
-// ------------------------------ QueuePacketFilter --------------------------------
-
-TypeId
-DGRv2PacketFilter::GetTypeId()
-{
-    static TypeId tid =
-        TypeId("ns3::DGRv2PacketFilter").SetParent<PacketFilter>().SetGroupName("DGRv2");
-    return tid;
-}
-
-DGRv2PacketFilter::DGRv2PacketFilter()
-{
-    NS_LOG_FUNCTION(this);
-}
-
-DGRv2PacketFilter::~DGRv2PacketFilter()
-{
-    NS_LOG_FUNCTION(this);
-}
-
-bool
-DGRv2PacketFilter::CheckProtocol(Ptr<QueueDiscItem> item) const
-{
-    NS_LOG_FUNCTION(this << item);
-    // Here we don't need check protocol
-    return true;
-}
-
-int32_t
-DGRv2PacketFilter::DoClassify(Ptr<QueueDiscItem> item) const
+ValueDenseQueueDisc::EnqueueClassify(Ptr<QueueDiscItem> item)
 {
     PriorityTag priorityTag;
     if (item->GetPacket()->PeekPacketTag(priorityTag))

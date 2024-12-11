@@ -18,10 +18,10 @@
 
 #include "ipv4-gbr-routing.h"
 
-#include "dgrv2-queue-disc.h"
 #include "packet-headers.h"
 #include "packet-tags.h"
 #include "route-manager.h"
+#include "value-dense-queue-disc.h"
 
 #include "ns3/boolean.h"
 #include "ns3/ipv4-list-routing.h"
@@ -302,7 +302,7 @@ GBR::LookupDDRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> idev)
             Ptr<QueueDisc> disc = m_ipv4->GetObject<Node>()
                                       ->GetObject<TrafficControlLayer>()
                                       ->GetRootQueueDiscOnDevice(dev_local);
-            Ptr<DGRv2QueueDisc> dvq = DynamicCast<DGRv2QueueDisc>(disc);
+            Ptr<ValueDenseQueueDisc> dvq = DynamicCast<ValueDenseQueueDisc>(disc);
             // uint32_t status_local = dvq->GetQueueStatus ();
             // uint32_t delay_local = status_local * 2000;
             uint32_t delay_local = dvq->GetQueueDelay();
@@ -435,7 +435,7 @@ GBR::LookupDGRRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> idev)
             Ptr<QueueDisc> disc = m_ipv4->GetObject<Node>()
                                       ->GetObject<TrafficControlLayer>()
                                       ->GetRootQueueDiscOnDevice(dev_local);
-            Ptr<DGRv2QueueDisc> dvq = DynamicCast<DGRv2QueueDisc>(disc);
+            Ptr<ValueDenseQueueDisc> dvq = DynamicCast<ValueDenseQueueDisc>(disc);
             // uint32_t status_local = dvq->GetQueueStatus ();
             // uint32_t delay_local = status_local * 2000;
             uint32_t delay_local = dvq->GetQueueDelay();
@@ -625,7 +625,7 @@ GBR::LookupKShortRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> ide
 //           // //get the queue disc on the device
 //           // Ptr<QueueDisc> disc = m_ipv4->GetObject<Node> ()->GetObject<TrafficControlLayer>
 //           ()->GetRootQueueDiscOnDevice (dev_local);
-//           // Ptr<DGRv2QueueDisc> dvq = DynamicCast <DGRv2QueueDisc> (disc);
+//           // Ptr<ValueDenseQueueDisc> dvq = DynamicCast <ValueDenseQueueDisc> (disc);
 //           // uint32_t status_local = dvq->GetQueueStatus ();
 //           // uint32_t delay_local = dvq->GetQueueDelay ();
 
@@ -647,8 +647,8 @@ GBR::LookupKShortRoute(Ipv4Address dest, Ptr<Packet> p, Ptr<const NetDevice> ide
 //           Ptr <NetDevice> dev_local = m_ipv4->GetNetDevice ((*i)->GetInterface ());
 //           //get the queue disc on the device
 //           Ptr<QueueDisc> disc = m_ipv4->GetObject<Node> ()->GetObject<TrafficControlLayer>
-//           ()->GetRootQueueDiscOnDevice (dev_local); Ptr<DGRv2QueueDisc> dvq = DynamicCast
-//           <DGRv2QueueDisc> (disc); uint32_t status_local = dvq->GetQueueStatus (); uint32_t
+//           ()->GetRootQueueDiscOnDevice (dev_local); Ptr<ValueDenseQueueDisc> dvq = DynamicCast
+//           <ValueDenseQueueDisc> (disc); uint32_t status_local = dvq->GetQueueStatus (); uint32_t
 //           delay_local = status_local * 2000;
 
 //           // Get the neighbor queue status in microsecond
@@ -1174,8 +1174,8 @@ GBR::NotifyInterfaceUp(uint32_t i)
     NS_LOG_FUNCTION(this << i);
     if (m_respondToInterfaceEvents && Simulator::Now().GetSeconds() > 0) // avoid startup events
     {
-        RouteManager::DeleteDGRRoutes();
-        RouteManager::BuildDGRRoutingDatabase();
+        RouteManager::DeleteRoutes();
+        RouteManager::BuildRoutingDatabase();
         RouteManager::InitializeRoutes();
     }
 }
@@ -1186,8 +1186,8 @@ GBR::NotifyInterfaceDown(uint32_t i)
     NS_LOG_FUNCTION(this << i);
     if (m_respondToInterfaceEvents && Simulator::Now().GetSeconds() > 0) // avoid startup events
     {
-        RouteManager::DeleteDGRRoutes();
-        RouteManager::BuildDGRRoutingDatabase();
+        RouteManager::DeleteRoutes();
+        RouteManager::BuildRoutingDatabase();
         RouteManager::InitializeRoutes();
     }
 }
@@ -1198,8 +1198,8 @@ GBR::NotifyAddAddress(uint32_t interface, Ipv4InterfaceAddress address)
     NS_LOG_FUNCTION(this << interface << address);
     if (m_respondToInterfaceEvents && Simulator::Now().GetSeconds() > 0) // avoid startup events
     {
-        RouteManager::DeleteDGRRoutes();
-        RouteManager::BuildDGRRoutingDatabase();
+        RouteManager::DeleteRoutes();
+        RouteManager::BuildRoutingDatabase();
         RouteManager::InitializeRoutes();
     }
 }
@@ -1210,8 +1210,8 @@ GBR::NotifyRemoveAddress(uint32_t interface, Ipv4InterfaceAddress address)
     NS_LOG_FUNCTION(this << interface << address);
     if (m_respondToInterfaceEvents && Simulator::Now().GetSeconds() > 0) // avoid startup events
     {
-        RouteManager::DeleteDGRRoutes();
-        RouteManager::BuildDGRRoutingDatabase();
+        RouteManager::DeleteRoutes();
+        RouteManager::BuildRoutingDatabase();
         RouteManager::InitializeRoutes();
     }
 }
@@ -1344,7 +1344,7 @@ GBR::DoSendNeighborStatusUpdate(bool periodic)
                 Ptr<QueueDisc> disc = m_ipv4->GetObject<Node>()
                                           ->GetObject<TrafficControlLayer>()
                                           ->GetRootQueueDiscOnDevice(dev);
-                Ptr<DGRv2QueueDisc> qdisc = DynamicCast<DGRv2QueueDisc>(disc);
+                Ptr<ValueDenseQueueDisc> qdisc = DynamicCast<ValueDenseQueueDisc>(disc);
                 DgrNse nse;
                 nse.SetInterface(i);
                 nse.SetState(qdisc->GetQueueStatus());
@@ -1479,11 +1479,11 @@ GBR::HandleResponses(DgrHeader hdr,
 //               continue;
 //             }
 
-//           Ptr<DGRv2QueueDisc> dgr_disc = DynamicCast <DGRv2QueueDisc> (disc);
+//           Ptr<ValueDenseQueueDisc> dgr_disc = DynamicCast <ValueDenseQueueDisc> (disc);
 
 //           if (dgr_disc == nullptr)
 //             {
-//               NS_LOG_LOGIC ("No DGRv2QueueDisc find!");
+//               NS_LOG_LOGIC ("No ValueDenseQueueDisc find!");
 //               continue;
 //             }
 

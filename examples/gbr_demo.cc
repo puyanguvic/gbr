@@ -19,7 +19,7 @@
 
 using namespace ns3;
 
-std::string expName = "dgrv2_demo";
+std::string expName = "gbr_demo";
 
 NS_LOG_COMPONENT_DEFINE(expName);
 
@@ -35,7 +35,7 @@ main(int argc, char* argv[])
     cmd.AddValue("format", "Format to use for data input [Orbis|Inet|Rocketfuel].", format);
     cmd.AddValue("topo", "topology", topo);
     cmd.Parse(argc, argv);
-    std::string input("contrib/dgrv2/topo/Inet_" + topo + "_topo.txt");
+    std::string input("contrib/gbr/topo/Inet_" + topo + "_topo.txt");
     // ------------------------------------------------------------
     // -- Read topology data.
     // --------------------------------------------
@@ -63,7 +63,6 @@ main(int argc, char* argv[])
     // -- Create nodes and network stacks
     // --------------------------------------------
     NS_LOG_INFO("creating internet stack");
-    InternetStackHelper stack;
 
     // Setup Routing algorithm
     GBRHelper gbr;
@@ -144,50 +143,50 @@ main(int argc, char* argv[])
     // ("1Mbps"), 1000, false); nodes.Get (udpSender)->AddApplication (app); app->SetStartTime
     // (Seconds (1.0)); app->SetStopTime (Seconds (20.0));
 
-    // -------------- TCP Back ground traffic 0-->2 ------------------
-    uint16_t tcpPort = 8080;
-    uint32_t tcpSink = 3;
-    uint32_t tcpSender = 0;
-    Ptr<Node> tcpSinkNode = nodes.Get(tcpSink);
-    Ptr<Ipv4> ipv4TcpSink = tcpSinkNode->GetObject<Ipv4>();
-    Ipv4InterfaceAddress iaddrTcpSink = ipv4TcpSink->GetAddress(1, 0);
-    Ipv4Address ipv4AddrTcpSink = iaddrTcpSink.GetLocal();
+    // // -------------- TCP Back ground traffic 0-->2 ------------------
+    // uint16_t tcpPort = 8080;
+    // uint32_t tcpSink = 3;
+    // uint32_t tcpSender = 0;
+    // Ptr<Node> tcpSinkNode = nodes.Get(tcpSink);
+    // Ptr<Ipv4> ipv4TcpSink = tcpSinkNode->GetObject<Ipv4>();
+    // Ipv4InterfaceAddress iaddrTcpSink = ipv4TcpSink->GetAddress(1, 0);
+    // Ipv4Address ipv4AddrTcpSink = iaddrTcpSink.GetLocal();
 
-    DGRSinkHelper sinkHelper("ns3::TcpSocketFactory",
-                             InetSocketAddress(Ipv4Address::GetAny(), tcpPort));
-    ApplicationContainer sinkApp = sinkHelper.Install(nodes.Get(tcpSink));
-    sinkApp.Start(Seconds(0.0));
-    sinkApp.Stop(Seconds(20.0));
+    // DGRSinkHelper sinkHelper("ns3::TcpSocketFactory",
+    //                          InetSocketAddress(Ipv4Address::GetAny(), tcpPort));
+    // ApplicationContainer sinkApp = sinkHelper.Install(nodes.Get(tcpSink));
+    // sinkApp.Start(Seconds(0.0));
+    // sinkApp.Stop(Seconds(20.0));
 
-    // tcp send
-    DGRTcpAppHelper sourceHelper("ns3::TcpSocketFactory",
-                                 InetSocketAddress(ipv4AddrTcpSink, tcpPort));
-    sourceHelper.SetAttribute("MaxBytes", UintegerValue(7500000));
-    sourceHelper.SetAttribute("Budget", UintegerValue(100));
-    ApplicationContainer sourceApp = sourceHelper.Install(nodes.Get(tcpSender));
-    sourceApp.Start(Seconds(1.0));
-    sourceApp.Stop(Seconds(20.0));
+    // // tcp send
+    // DGRTcpAppHelper sourceHelper("ns3::TcpSocketFactory",
+    //                              InetSocketAddress(ipv4AddrTcpSink, tcpPort));
+    // sourceHelper.SetAttribute("MaxBytes", UintegerValue(7500000));
+    // sourceHelper.SetAttribute("Budget", UintegerValue(100));
+    // ApplicationContainer sourceApp = sourceHelper.Install(nodes.Get(tcpSender));
+    // sourceApp.Start(Seconds(1.0));
+    // sourceApp.Stop(Seconds(20.0));
 
-    // ------------------------------------------------------------
-    // -- Net anim
-    // ---------------------------------------------
-    AnimationInterface anim(topo + expName + ".xml");
-    std::ifstream topoNetanim(input);
-    std::istringstream buffer;
-    std::string line;
-    getline(topoNetanim, line);
-    for (uint32_t i = 0; i < nodes.GetN(); i++)
-    {
-        getline(topoNetanim, line);
-        buffer.clear();
-        buffer.str(line);
-        int no;
-        double x, y;
-        buffer >> no;
-        buffer >> x;
-        buffer >> y;
-        anim.SetConstantPosition(nodes.Get(no), x * 10, y * 10);
-    }
+    // // ------------------------------------------------------------
+    // // -- Net anim
+    // // ---------------------------------------------
+    // AnimationInterface anim(topo + expName + ".xml");
+    // std::ifstream topoNetanim(input);
+    // std::istringstream buffer;
+    // std::string line;
+    // getline(topoNetanim, line);
+    // for (uint32_t i = 0; i < nodes.GetN(); i++)
+    // {
+    //     getline(topoNetanim, line);
+    //     buffer.clear();
+    //     buffer.str(line);
+    //     int no;
+    //     double x, y;
+    //     buffer >> no;
+    //     buffer >> x;
+    //     buffer >> y;
+    //     anim.SetConstantPosition(nodes.Get(no), x * 10, y * 10);
+    // }
 
     // ------------------------------------------------------------
     // -- Run the simulation

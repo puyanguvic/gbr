@@ -38,17 +38,17 @@ NS_LOG_COMPONENT_DEFINE("RouteManager");
 // ---------------------------------------------------------------------------
 
 void
-RouteManager::DeleteDGRRoutes()
+RouteManager::DeleteRoutes()
 {
     NS_LOG_FUNCTION_NOARGS();
-    SimulationSingleton<RouteManagerImpl>::Get()->DeleteDGRRoutes();
+    SimulationSingleton<RouteManagerImpl>::Get()->DeleteRoutes();
 }
 
 void
-RouteManager::BuildDGRRoutingDatabase(void)
+RouteManager::BuildRoutingDatabase(void)
 {
     NS_LOG_FUNCTION_NOARGS();
-    SimulationSingleton<RouteManagerImpl>::Get()->BuildDGRRoutingDatabase();
+    SimulationSingleton<RouteManagerImpl>::Get()->BuildRoutingDatabase();
 }
 
 void

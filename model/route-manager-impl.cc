@@ -571,7 +571,7 @@ RouteManagerImpl::DebugUseLsdb(RouteManagerLSDB* lsdb)
 }
 
 void
-RouteManagerImpl::DeleteDGRRoutes()
+RouteManagerImpl::DeleteRoutes()
 {
     NS_LOG_FUNCTION(this);
     NodeList::Iterator listEnd = NodeList::End();
@@ -615,7 +615,7 @@ RouteManagerImpl::DeleteDGRRoutes()
 // ultimately be computed.
 //
 void
-RouteManagerImpl::BuildDGRRoutingDatabase()
+RouteManagerImpl::BuildRoutingDatabase()
 {
     NS_LOG_FUNCTION(this);
     //
@@ -703,20 +703,20 @@ RouteManagerImpl::InitializeRoutes()
     //
     // Walk the list of nodes in the system.
     //
-    auto begin = std::chrono::system_clock::now();
-    int64_t begin_microseconds =
-        std::chrono::duration_cast<std::chrono::microseconds>(begin.time_since_epoch()).count();
     NS_LOG_INFO("About to start SPF calculation");
     NodeList::Iterator listEnd = NodeList::End();
     for (NodeList::Iterator i = NodeList::Begin(); i != listEnd; i++)
     {
         Ptr<Node> node = *i;
-
         //
         // Look for the Router interface that indicates that the node is
         // participating in routing.
         //
         Ptr<Router> rtr = node->GetObject<Router>();
+        if (!rtr)
+        {
+            NS_LOG_ERROR("Router objective is nullptr for node: " << node->GetId());
+        }
 
         uint32_t systemId = Simulator::GetSystemId();
         // Ignore nodes that are not assigned to our systemId (distributed sim)
@@ -726,12 +726,16 @@ RouteManagerImpl::InitializeRoutes()
         }
 
         // ---------- Initialize Neighbor Information exchange ----
-        Ptr<GBR> dgr = rtr->GetRoutingProtocol();
-        dgr->DoInitialize();
+        Ptr<GBR> gbr = rtr->GetRoutingProtocol();
+        if (!gbr)
+        {
+            NS_LOG_ERROR("GBR protocol is nullptr for node:" << node->GetId());
+        }
+        gbr->DoInitialize();
 
         // -------- Initialize routing table --------------
         //
-        // if the node has a DGR router interface, then run the DGR routing
+        // if the node has a GBR router interface, then run the GBR routing
         // algorithms.
         //
         Vertex* v;
@@ -783,7 +787,12 @@ RouteManagerImpl::InitializeRoutes()
                     // the link state database.
                     //
                     w_lsa = m_lsdb->GetLSA(l->GetLinkId());
+                    if (!w_lsa)
+                    {
+                        NS_LOG_ERROR("LSA not found for Linkid");
+                    }
                     NS_ASSERT(w_lsa);
+
                     NS_LOG_LOGIC("Found a P2P record from " << v->GetVertexId() << " to "
                                                             << w_lsa->GetLinkStateId());
                     Ptr<Router> router = node->GetObject<Router>();
@@ -841,17 +850,9 @@ RouteManagerImpl::InitializeRoutes()
                 }
             }
         }
-    }
-    auto end = std::chrono::system_clock::now();
-    int64_t end_microseconds =
-        std::chrono::duration_cast<std::chrono::microseconds>(end.time_since_epoch()).count();
-    int64_t durTime = end_microseconds - begin_microseconds;
-    std::ofstream write;
-    write.open("/home/ff/Desktop/infcomm2023/dgr/ns-allinone-3.33/ns-3.33/contrib/dgr/infocomm2023/"
-               "new_1_runtime/result/dgr.txt",
-               std::ios::app);
-    write << durTime << std::endl;
-    NS_LOG_INFO("Finished DGR-SPF calculation");
+        }
+
+    NS_LOG_INFO("Finished SPF calculation");
 }
 
 //
@@ -1478,7 +1479,7 @@ RouteManagerImpl::SPFCalculate(Ipv4Address root,
     v = new Vertex(m_lsdb->GetLSA(root));
 
     /**
-     * @brief add the initroot for DGR
+     * @brief add the initroot for SPF
      * \author Pu Yang
      */
     Vertex* v_init;

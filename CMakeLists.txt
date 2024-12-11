@@ -25,11 +25,10 @@ build_lib(
         model/route-manager.cc
         model/route-manager-impl.cc
         model/route-candidate-queue.cc
-        model/dgrv2-queue-disc.cc
+        model/value-dense-queue-disc.cc
         helper/gbr-routing-helper.cc
-        helper/dgr-application-helper.cc
-        helper/dgr-tcp-application-helper.cc
-        helper/dgr-sink-helper.cc
+        helper/tcp-application-helper.cc
+        helper/sink-helper.cc
     HEADER_FILES
         model/packet-tags.h
         model/packet-headers.h
@@ -43,11 +42,10 @@ build_lib(
         model/route-manager.h
         model/route-manager-impl.h
         model/route-candidate-queue.h
-        model/dgrv2-queue-disc.h
+        model/value-dense-queue-disc.h
         helper/gbr-routing-helper.h
-        helper/dgr-application-helper.h
-        helper/dgr-tcp-application-helper.h
-        helper/dgr-sink-helper.h
+        helper/tcp-application-helper.h
+        helper/sink-helper.h
     LIBRARIES_TO_LINK ${libcore}
     TEST_SOURCES
         # test/dgr-udp-application-test.cc

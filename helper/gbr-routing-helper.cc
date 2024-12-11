@@ -66,19 +66,19 @@ GBRHelper::PopulateRoutingTables(void)
 {
     std::clock_t t;
     t = clock();
-    RouteManager::BuildDGRRoutingDatabase();
+    RouteManager::BuildRoutingDatabase();
     RouteManager::InitializeRoutes();
 
     t = clock() - t;
     uint32_t time_init_ms = 1000000.0 * t / CLOCKS_PER_SEC;
-    std::cout << "CPU time used for DGR Init: " << time_init_ms << " ms\n";
+    std::cout << "CPU time used for Init: " << time_init_ms << " ms\n";
 }
 
 void
 GBRHelper::RecomputeRoutingTables(void)
 {
-    RouteManager::DeleteDGRRoutes();
-    RouteManager::BuildDGRRoutingDatabase();
+    RouteManager::DeleteRoutes();
+    RouteManager::BuildRoutingDatabase();
     RouteManager::InitializeRoutes();
 }
 
@@ -115,8 +115,8 @@ GBRHelper::Install(Ptr<NetDevice> d)
 
     // Generate the DGRv2Qeueu Object
     ObjectFactory queueFactory;
-    queueFactory.SetTypeId("ns3::DGRv2QueueDisc");
-    Ptr<DGRv2QueueDisc> qdisc = queueFactory.Create<DGRv2QueueDisc>();
+    queueFactory.SetTypeId("ns3::ValueDenseQueueDisc");
+    Ptr<ValueDenseQueueDisc> qdisc = queueFactory.Create<ValueDenseQueueDisc>();
     tc->SetRootQueueDiscOnDevice(d, qdisc);
     container.Add(qdisc);
     return container;
